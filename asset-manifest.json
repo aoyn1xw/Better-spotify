@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/Better-spotify/static/css/main.c56f0db9.css",
+    "main.js": "/Better-spotify/static/js/main.91f839c4.js",
+    "index.html": "/Better-spotify/index.html",
+    "main.c56f0db9.css.map": "/Better-spotify/static/css/main.c56f0db9.css.map",
+    "main.91f839c4.js.map": "/Better-spotify/static/js/main.91f839c4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c56f0db9.css",
+    "static/js/main.91f839c4.js"
+  ]
+}
