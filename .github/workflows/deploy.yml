@@ -8,12 +8,11 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -32,9 +31,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm install
-          npm install --save-dev typescript@4.9.5
+        run: npm install
 
       - name: Build
         run: npm run build
@@ -57,16 +54,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      
-      # Alternatively, use gh-pages directly if GitHub Actions deployment continues to fail
-      - name: Deploy with gh-pages
-        if: ${{ failure() }}
-        uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          npm install
-          npm run deploy
