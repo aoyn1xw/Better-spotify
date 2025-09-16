@@ -33,7 +33,13 @@ const App = () => {
     if (!accessToken) return;
     
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/currently-playing`, {
+      // Use the BACKEND_URL from environment or construct it from the current domain
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 
+                         (window.location.hostname === 'localhost' 
+                           ? 'http://localhost:5000' 
+                           : `https://${window.location.hostname}/Better-spotify-backend`);
+      
+      const response = await fetch(`${backendUrl}/currently-playing`, {
         headers: {
           'Authorization': accessToken
         }
@@ -93,7 +99,13 @@ const App = () => {
   // Refresh access token
   const refreshAccessToken = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/refresh_token`, {
+      // Use the BACKEND_URL from environment or construct it from the current domain
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 
+                         (window.location.hostname === 'localhost' 
+                           ? 'http://localhost:5000' 
+                           : `https://${window.location.hostname}/Better-spotify-backend`);
+      
+      const response = await fetch(`${backendUrl}/refresh_token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -140,7 +152,13 @@ const App = () => {
 
   // Handle login
   const handleLogin = () => {
-    window.location.href = `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/login`;
+    // Use the BACKEND_URL from environment or construct it from the current domain
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || 
+                       (window.location.hostname === 'localhost' 
+                         ? 'http://localhost:5000' 
+                         : `https://${window.location.hostname}/Better-spotify-backend`);
+    
+    window.location.href = `${backendUrl}/login`;
   };
 
   // Format time (ms to mm:ss)
