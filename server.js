@@ -11,7 +11,19 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+// Configure CORS to allow requests from your frontend domain
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://ayon1xw.me',
+    'https://ayon1xw.me/Better-spotify'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Spotify API credentials
@@ -19,6 +31,9 @@ const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/callback';
 const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:3000';
+
+// Determine if we're in production
+const isProd = process.env.NODE_ENV === 'production';
 
 // Store tokens in memory (in production, use a database)
 let refreshTokens = new Set();

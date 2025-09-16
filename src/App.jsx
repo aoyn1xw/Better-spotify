@@ -33,11 +33,10 @@ const App = () => {
     if (!accessToken) return;
     
     try {
-      // Use the BACKEND_URL from environment or construct it from the current domain
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 
-                         (window.location.hostname === 'localhost' 
-                           ? 'http://localhost:5000' 
-                           : `https://${window.location.hostname}/Better-spotify-backend`);
+      // Direct URL to your Spotify authentication server
+      const backendUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:5000'
+        : 'https://spotify-auth-server-better-spotify.onrender.com';
       
       const response = await fetch(`${backendUrl}/currently-playing`, {
         headers: {
@@ -99,11 +98,10 @@ const App = () => {
   // Refresh access token
   const refreshAccessToken = async () => {
     try {
-      // Use the BACKEND_URL from environment or construct it from the current domain
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 
-                         (window.location.hostname === 'localhost' 
-                           ? 'http://localhost:5000' 
-                           : `https://${window.location.hostname}/Better-spotify-backend`);
+      // Direct URL to your Spotify authentication server
+      const backendUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:5000'
+        : 'https://spotify-auth-server-better-spotify.onrender.com';
       
       const response = await fetch(`${backendUrl}/refresh_token`, {
         method: 'POST',
@@ -152,13 +150,16 @@ const App = () => {
 
   // Handle login
   const handleLogin = () => {
-    // Use the BACKEND_URL from environment or construct it from the current domain
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 
-                       (window.location.hostname === 'localhost' 
-                         ? 'http://localhost:5000' 
-                         : `https://${window.location.hostname}/Better-spotify-backend`);
+    // Direct URL to your Spotify authentication server
+    // Using a hardcoded URL here since GitHub Pages doesn't support server-side routing
+    const authUrl = "https://spotify-auth-server-better-spotify.onrender.com/login";
     
-    window.location.href = `${backendUrl}/login`;
+    // For local development, use localhost
+    if (window.location.hostname === 'localhost') {
+      window.location.href = 'http://localhost:5000/login';
+    } else {
+      window.location.href = authUrl;
+    }
   };
 
   // Format time (ms to mm:ss)
