@@ -214,6 +214,75 @@ app.get('/debug', (req, res) => {
   });
 });
 
+// Add a root route with API documentation
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Better Spotify API</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          h1 {
+            color: #1DB954;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+          }
+          h2 {
+            margin-top: 30px;
+            color: #333;
+          }
+          .endpoint {
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+          }
+          .method {
+            font-weight: bold;
+            color: #1DB954;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Better Spotify API</h1>
+        <p>This is the backend API server for the Better Spotify application.</p>
+        
+        <h2>Available Endpoints:</h2>
+        
+        <div class="endpoint">
+          <p><span class="method">GET</span> /login</p>
+          <p>Redirects to Spotify authorization page</p>
+        </div>
+        
+        <div class="endpoint">
+          <p><span class="method">GET</span> /callback</p>
+          <p>Handles the Spotify OAuth callback</p>
+        </div>
+        
+        <div class="endpoint">
+          <p><span class="method">POST</span> /refresh_token</p>
+          <p>Refreshes an access token using a refresh token</p>
+        </div>
+        
+        <div class="endpoint">
+          <p><span class="method">GET</span> /currently-playing</p>
+          <p>Gets the currently playing track (requires authentication)</p>
+        </div>
+
+        <p>For more information, visit the <a href="${FRONTEND_URI}">frontend application</a>.</p>
+      </body>
+    </html>
+  `);
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Using REDIRECT_URI: ${REDIRECT_URI}`);
