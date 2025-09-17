@@ -1,6 +1,9 @@
 // App.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Layout from './Layout';
+import './App.css';
+import './App.styles.css'; // Import the new CSS styles
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -268,13 +271,8 @@ const App = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen transition-all duration-1000"
-      style={{
-        background: `linear-gradient(135deg, ${backgroundColors[0]}, ${backgroundColors[1]})`
-      }}
-    >
-      <div className="container mx-auto px-4 py-8">
+    <Layout backgroundColors={backgroundColors}>
+      <div className="px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-white">Now Playing</h1>
           <button 
@@ -303,9 +301,16 @@ const App = () => {
                   <img 
                     src={currentTrack.album.images[0]?.url} 
                     alt={currentTrack.album.name}
-                    className="w-64 h-64 md:w-80 md:h-80 rounded-2xl shadow-2xl"
+                    className="album-art"
+                    style={{
+                      width: '280px',
+                      height: '280px',
+                      objectFit: 'cover',
+                      borderRadius: '1rem',
+                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                    }}
                   />
-                  <div className="absolute inset-0 bg-black/20 rounded-2xl"></div>
+                  <div className="absolute inset-0 bg-black/20 rounded-2xl" style={{ borderRadius: '1rem' }}></div>
                 </motion.div>
 
                 <div className="flex-1 text-center md:text-left">
@@ -436,7 +441,7 @@ const App = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </Layout>
   );
 };
 
