@@ -16,6 +16,25 @@ const App = () => {
 
   // Check for tokens in URL on component mount
   useEffect(() => {
+    // Check for tokens in hash fragment (for GitHub Pages)
+    if (window.location.hash) {
+      const hashParams = {};
+      window.location.hash.substring(1).split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        hashParams[key] = value;
+      });
+      
+      if (hashParams.access_token && hashParams.refresh_token) {
+        setAccessToken(hashParams.access_token);
+        setRefreshToken(hashParams.refresh_token);
+        setIsLoggedIn(true);
+        // Clear the hash but preserve the path for GitHub Pages
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+    }
+    
+    // Fallback to check query parameters (for local development)
     const urlParams = new URLSearchParams(window.location.search);
     const access_token = urlParams.get('access_token');
     const refresh_token = urlParams.get('refresh_token');
@@ -24,7 +43,7 @@ const App = () => {
       setAccessToken(access_token);
       setRefreshToken(refresh_token);
       setIsLoggedIn(true);
-      window.history.replaceState({}, document.title, "/");
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
