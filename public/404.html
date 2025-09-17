@@ -3,36 +3,87 @@
 <head>
   <meta charset="utf-8">
   <title>Better Spotify - Redirecting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e3264 0%, #e65c00 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    #debug {
+      margin-top: 20px;
+      font-size: 12px;
+      opacity: 0.7;
+      text-align: left;
+      word-break: break-all;
+    }
+  </style>
   <script type="text/javascript">
     // Single Page Apps for GitHub Pages
     // MIT License
     // https://github.com/rafgraph/spa-github-pages
-    // Modified for use with GitHub Pages in a subfolder
+    // Heavily modified for Better Spotify app
     
-    var pathSegmentsToKeep = 1; // Keep 'Better-spotify' as the base path
-    var l = window.location;
-    
-    // Check if this is a callback with tokens (handle specially)
-    if (l.hash && l.hash.includes('access_token=')) {
-      // For auth callbacks, preserve the hash and just fix the path
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + 
-        l.hash
-      );
-    } else {
-      // Regular SPA redirect for normal navigation
-      l.replace(
-        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
-        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
-        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
-        l.hash
-      );
-    }
+    window.onload = function() {
+      var pathSegmentsToKeep = 1; // Keep 'Better-spotify' as the base path
+      var l = window.location;
+      
+      // Show debug info
+      document.getElementById('debug').innerHTML = 'Current URL: ' + l.href;
+      
+      // Special handling for callback
+      if (l.pathname.includes('/callback') || l.search.includes('token=') || l.search.includes('access_token=') || 
+          l.hash.includes('token=') || l.hash.includes('access_token=')) {
+        
+        document.getElementById('debug').innerHTML += '<br>Detected authentication callback';
+        document.getElementById('message').innerHTML = 'Authentication detected! Redirecting to Better Spotify...';
+        
+        // For auth callbacks, redirect to the special callback handler
+        setTimeout(function() {
+          l.replace(
+            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/callback.html' +
+            l.search + l.hash
+          );
+        }, 1000);
+      } else {
+        // Regular SPA redirect for normal navigation
+        document.getElementById('debug').innerHTML += '<br>Regular navigation, redirecting to SPA';
+        
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?p=/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }
+    };
   </script>
 </head>
 <body>
-  <h2>Redirecting...</h2>
+  <div class="card">
+    <h1>Better Spotify</h1>
+    <p id="message">Redirecting...</p>
+    <div id="debug"></div>
+  </div>
 </body>
 </html>
