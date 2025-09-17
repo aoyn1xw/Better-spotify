@@ -15,7 +15,6 @@ const port = process.env.PORT || 5000;
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://ayon1xw.me',
     'https://ayon1xw.me/Better-spotify'
   ],
   credentials: true,
