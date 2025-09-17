@@ -25,6 +25,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Request logger middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} [REQUEST] ${req.method} ${req.url}`);
+  console.log(`  User-Agent: ${req.headers['user-agent']}`);
+  console.log(`  Referer: ${req.headers['referer'] || 'none'}`);
+  console.log(`  Query params: ${JSON.stringify(req.query)}`);
+  next();
+});
+
 // Spotify API credentials
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -170,13 +179,29 @@ app.get('/callback', async (req, res) => {
     console.log('Refresh token (first few chars):', refresh_token.substring(0, 5) + '...');
     console.log('FRONTEND_URI value:', FRONTEND_URI);
     
-    // For GitHub Pages, construct the full redirect URL with proper hash fragment
-    // Make sure we append any existing path in the frontend URI
-    const redirectUrl = `${FRONTEND_URI}/#/callback#access_token=${access_token}&refresh_token=${refresh_token}`;
-    console.log('Full redirect URL (sanitized):', redirectUrl.replace(access_token, 'ACCESS_TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_TOKEN_HIDDEN'));
-    
-    // For GitHub Pages, we need to handle the redirect properly
-    res.redirect(redirectUrl);
+    // Try a simpler approach - just send HTML with JavaScript that will store tokens and redirect
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Authenticating...</title>
+        <script>
+          // Store tokens in localStorage for persistence
+          localStorage.setItem('spotify_access_token', '${access_token}');
+          localStorage.setItem('spotify_refresh_token', '${refresh_token}');
+          
+          // Log for debugging
+          console.log('Tokens stored in localStorage');
+          
+          // Redirect to frontend
+          window.location.href = '${FRONTEND_URI}';
+        </script>
+      </head>
+      <body>
+        <h2>Authentication successful! Redirecting...</h2>
+      </body>
+      </html>
+    `);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
     // Log detailed error information
@@ -270,8 +295,103 @@ app.get('/debug', (req, res) => {
     cors_config: {
       allowed_origins: corsOptions.origin,
       credentials_allowed: corsOptions.credentials
+    },
+    tokens_in_memory: {
+      refresh_tokens_count: refreshTokens.size,
+      current_token_exists: !!currentToken,
+      current_token_timestamp: currentToken ? new Date(currentToken.timestamp).toISOString() : null
     }
   });
+});
+
+// Interactive test page for Spotify auth
+app.get('/test-auth', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Spotify Auth Tester</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; }
+        .card { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 15px 0; }
+      </style>
+    </head>
+    <body>
+      <h1>Spotify Auth Test Page</h1>
+      <div class="card">
+        <h2>Step 1: Start Login Flow</h2>
+        <button id="login">Login with Spotify</button>
+      </div>
+      
+      <div class="card">
+        <h2>Step 2: Check for Tokens</h2>
+        <button id="check">Check for tokens</button>
+        <div id="token-results"></div>
+      </div>
+      
+      <div class="card">
+        <h2>Step 3: Test Playing Track</h2>
+        <button id="get-current">Get Currently Playing</button>
+        <div id="current-track"></div>
+      </div>
+      
+      <script>
+        document.getElementById('login').addEventListener('click', () => {
+          window.location.href = '/login';
+        });
+        
+        document.getElementById('check').addEventListener('click', () => {
+          const tokenDisplay = document.getElementById('token-results');
+          const accessToken = localStorage.getItem('spotify_access_token');
+          const refreshToken = localStorage.getItem('spotify_refresh_token');
+          
+          if (accessToken && refreshToken) {
+            tokenDisplay.innerHTML = '<pre>Access token: ' + accessToken.substring(0, 10) + '...<br>' +
+                                    'Refresh token: ' + refreshToken.substring(0, 10) + '...</pre>';
+          } else {
+            tokenDisplay.innerHTML = '<pre>No tokens found in localStorage</pre>';
+          }
+        });
+        
+        document.getElementById('get-current').addEventListener('click', async () => {
+          const resultDiv = document.getElementById('current-track');
+          const accessToken = localStorage.getItem('spotify_access_token');
+          
+          if (!accessToken) {
+            resultDiv.innerHTML = '<pre>No access token available</pre>';
+            return;
+          }
+          
+          resultDiv.innerHTML = '<pre>Fetching current track...</pre>';
+          
+          try {
+            const response = await fetch('/currently-playing', {
+              headers: {
+                'Authorization': accessToken
+              }
+            });
+            
+            if (response.status === 204) {
+              resultDiv.innerHTML = '<pre>No track currently playing</pre>';
+              return;
+            }
+            
+            if (!response.ok) {
+              throw new Error('Failed to fetch: ' + response.status);
+            }
+            
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+          } catch (error) {
+            resultDiv.innerHTML = '<pre>Error: ' + error.message + '</pre>';
+          }
+        });
+      </script>
+    </body>
+    </html>
+  `);
 });
 
 // Add a root route with API documentation

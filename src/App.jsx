@@ -14,13 +14,26 @@ const App = () => {
   const [lyrics, setLyrics] = useState(null);
   const [showLyrics, setShowLyrics] = useState(false);
 
-  // Check for tokens in URL on component mount
+  // Check for tokens in URL or localStorage on component mount
   useEffect(() => {
     console.log('Checking for auth tokens...');
     
     // Debug info - remove in production
     console.log('Current URL:', window.location.href);
     
+    // First check localStorage for tokens
+    const storedAccessToken = localStorage.getItem('spotify_access_token');
+    const storedRefreshToken = localStorage.getItem('spotify_refresh_token');
+    
+    if (storedAccessToken && storedRefreshToken) {
+      console.log('Found tokens in localStorage');
+      setAccessToken(storedAccessToken);
+      setRefreshToken(storedRefreshToken);
+      setIsLoggedIn(true);
+      return;
+    }
+    
+    // If not in localStorage, try to extract from URL
     // Function to extract token from any location in the URL
     const extractTokens = () => {
       // First, check the full URL for token patterns
@@ -30,6 +43,11 @@ const App = () => {
       
       if (accessTokenMatch && refreshTokenMatch) {
         console.log('Found tokens in URL pattern');
+        
+        // Also store in localStorage for persistence
+        localStorage.setItem('spotify_access_token', accessTokenMatch[1]);
+        localStorage.setItem('spotify_refresh_token', refreshTokenMatch[1]);
+        
         return {
           access_token: accessTokenMatch[1],
           refresh_token: refreshTokenMatch[1]
@@ -42,7 +60,7 @@ const App = () => {
     const tokens = extractTokens();
     
     if (tokens) {
-      console.log('Setting tokens and logging in');
+      console.log('Setting tokens from URL and logging in');
       setAccessToken(tokens.access_token);
       setRefreshToken(tokens.refresh_token);
       setIsLoggedIn(true);
@@ -53,7 +71,7 @@ const App = () => {
       return;
     }
     
-    console.log('No tokens found in URL');
+    console.log('No tokens found in localStorage or URL');
   }, []);
 
   // Fetch current playback data
@@ -186,7 +204,28 @@ const App = () => {
         ? 'http://localhost:5000' 
         : 'https://better-spotify-4y6p.onrender.com');
     
-    window.location.href = `${backendUrl}/login`;
+    console.log('Login button clicked');
+    console.log('Redirecting to backend URL:', backendUrl + '/login');
+    
+    // For debugging, show a message on screen
+    if (typeof document !== 'undefined') {
+      const debugMsg = document.createElement('div');
+      debugMsg.style.position = 'fixed';
+      debugMsg.style.top = '10px';
+      debugMsg.style.right = '10px';
+      debugMsg.style.background = 'rgba(0,0,0,0.8)';
+      debugMsg.style.color = 'white';
+      debugMsg.style.padding = '10px';
+      debugMsg.style.borderRadius = '5px';
+      debugMsg.style.zIndex = '9999';
+      debugMsg.innerHTML = `Redirecting to: ${backendUrl}/login`;
+      document.body.appendChild(debugMsg);
+    }
+    
+    // Add a small delay for debug message to be visible
+    setTimeout(() => {
+      window.location.href = `${backendUrl}/login`;
+    }, 500);
   };
 
   // Format time (ms to mm:ss)
