@@ -9,6 +9,50 @@
   padding: 0 16px;
 }
 
+@media (max-width: 600px) {
+  .container {
+    padding: 0 4px;
+  }
+  .px-4 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .py-8 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  .mb-8 {
+    margin-bottom: 1rem;
+  }
+  .text-2xl {
+    font-size: 1.1rem;
+  }
+  .text-3xl {
+    font-size: 1.3rem;
+  }
+  .album-art {
+    width: 90vw;
+    max-width: 320px;
+    height: 90vw;
+    max-height: 320px;
+  }
+  .max-w-4xl, .max-w-2xl {
+    max-width: 98vw;
+  }
+  .gap-8 {
+    gap: 1rem;
+  }
+  .flex-col, .md\:flex-row {
+    flex-direction: column !important;
+  }
+  .items-center {
+    align-items: stretch;
+  }
+  .rounded-2xl {
+    border-radius: 0.7rem;
+  }
+}
+
 .min-h-screen {
   min-height: 100vh;
 }

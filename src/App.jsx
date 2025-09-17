@@ -70,8 +70,7 @@ const App = () => {
       if (!response.ok) throw new Error('Failed to fetch playback data');
       
       const data = await response.json();
-      
-      if (data.item) {
+            if (data.item) {
         setCurrentTrack(data.item);
         setIsPlaying(data.is_playing);
         setProgress(data.progress_ms);
