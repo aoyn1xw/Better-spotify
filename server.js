@@ -42,6 +42,8 @@ let REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
 // Hardcode frontend URI for testing
 const FRONTEND_URI = process.env.FRONTEND_URI || 'https://ayon1xw.me/Better-spotify';
 // Use the exact frontend callback URL registered in the Spotify Developer Dashboard
+// For GitHub Pages, we need to use the callback URL with .html extension
+// But we register it without extension in Spotify Developer Dashboard
 const GITHUB_CALLBACK_URL = 'https://ayon1xw.me/Better-spotify/callback';
 
 // Determine if we're in production
