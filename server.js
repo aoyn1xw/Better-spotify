@@ -37,12 +37,12 @@ app.use((req, res, next) => {
 // Spotify API credentials
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-// Try hardcoded redirect URI to troubleshoot INVALID_CLIENT error
-const REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
-// For local development, uncomment the line below instead
-// const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/callback';
+// Match the redirect URI with what's coming from the request to be flexible
+let REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
 // Hardcode frontend URI for testing
 const FRONTEND_URI = process.env.FRONTEND_URI || 'https://ayon1xw.me/Better-spotify';
+// Create a separate callback URL for GitHub Pages
+const GITHUB_CALLBACK_URL = 'https://ayon1xw.me/Better-spotify/callback.html';
 
 // Determine if we're in production
 const isProd = process.env.NODE_ENV === 'production';
@@ -94,6 +94,14 @@ const getAccessToken = async (refreshToken) => {
 app.get('/login', (req, res) => {
   const state = generateRandomString(16);
   const scope = 'user-read-private user-read-email user-read-playback-state user-read-currently-playing';
+  
+  // Determine which redirect URI to use based on referer
+  const referer = req.headers.referer || '';
+  if (referer.includes('ayon1xw.me')) {
+    // If coming from GitHub Pages
+    REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
+    console.log('Using GitHub Pages flow with backend callback');
+  }
   
   // Super verbose logging
   console.log('=========== LOGIN ROUTE ===========');
@@ -185,16 +193,6 @@ app.get('/callback', async (req, res) => {
     console.log('Redirecting to callback page:', callbackUrl.replace(access_token, 'TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_HIDDEN'));
     
     res.redirect(callbackUrl);
-    
-    // ULTRA-SIMPLE approach: Redirect directly to the frontend with tokens in query string
-    // We'll use this format: https://ayon1xw.me/Better-spotify/?token=xyz&refresh=abc
-    // This avoids any complex hash-based routing issues
-    
-    console.log('Using ultra-simple redirect approach');
-    const simpleRedirectUrl = `${FRONTEND_URI}/?token=${encodeURIComponent(access_token)}&refresh=${encodeURIComponent(refresh_token)}`;
-    console.log('Redirecting to:', simpleRedirectUrl.replace(access_token, 'ACCESS_TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_TOKEN_HIDDEN'));
-    
-    res.redirect(simpleRedirectUrl);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
     // Log detailed error information
