@@ -166,12 +166,17 @@ app.get('/callback', async (req, res) => {
     };
     
     console.log('Successfully obtained tokens');
-    console.log('Redirecting to frontend:', FRONTEND_URI);
+    console.log('Access token (first few chars):', access_token.substring(0, 5) + '...');
+    console.log('Refresh token (first few chars):', refresh_token.substring(0, 5) + '...');
+    console.log('FRONTEND_URI value:', FRONTEND_URI);
+    
+    // For GitHub Pages, construct the full redirect URL with proper hash fragment
+    // Make sure we append any existing path in the frontend URI
+    const redirectUrl = `${FRONTEND_URI}/#/callback#access_token=${access_token}&refresh_token=${refresh_token}`;
+    console.log('Full redirect URL (sanitized):', redirectUrl.replace(access_token, 'ACCESS_TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_TOKEN_HIDDEN'));
     
     // For GitHub Pages, we need to handle the redirect properly
-    // GitHub Pages URLs need to correctly handle hash routing
-    // Use hash fragment for parameters since GitHub Pages doesn't support server-side routing
-    res.redirect(`${FRONTEND_URI}#access_token=${access_token}&refresh_token=${refresh_token}`);
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
     // Log detailed error information

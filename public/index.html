@@ -30,6 +30,7 @@
       // Single Page Apps for GitHub Pages
       // MIT License
       // https://github.com/rafgraph/spa-github-pages
+      // Modified for Better Spotify app
       (function(l) {
         if (l.search[1] === '/' ) {
           var decoded = l.search.slice(1).split('&').map(function(s) { 
@@ -38,6 +39,12 @@
           window.history.replaceState(null, null,
               l.pathname.slice(0, -1) + decoded + l.hash
           );
+        }
+        
+        // Additional handling for auth callback with hash parameters
+        if (l.hash && l.hash.includes('access_token=')) {
+          console.log('SPA script detected auth tokens in hash');
+          // We'll let the app handle this, just log for debugging
         }
       }(window.location))
     </script>

@@ -16,35 +16,44 @@ const App = () => {
 
   // Check for tokens in URL on component mount
   useEffect(() => {
-    // Check for tokens in hash fragment (for GitHub Pages)
-    if (window.location.hash) {
-      const hashParams = {};
-      window.location.hash.substring(1).split('&').forEach(pair => {
-        const [key, value] = pair.split('=');
-        hashParams[key] = value;
-      });
+    console.log('Checking for auth tokens...');
+    
+    // Debug info - remove in production
+    console.log('Current URL:', window.location.href);
+    
+    // Function to extract token from any location in the URL
+    const extractTokens = () => {
+      // First, check the full URL for token patterns
+      const fullUrl = window.location.href;
+      const accessTokenMatch = fullUrl.match(/access_token=([^&]*)/);
+      const refreshTokenMatch = fullUrl.match(/refresh_token=([^&]*)/);
       
-      if (hashParams.access_token && hashParams.refresh_token) {
-        setAccessToken(hashParams.access_token);
-        setRefreshToken(hashParams.refresh_token);
-        setIsLoggedIn(true);
-        // Clear the hash but preserve the path for GitHub Pages
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
+      if (accessTokenMatch && refreshTokenMatch) {
+        console.log('Found tokens in URL pattern');
+        return {
+          access_token: accessTokenMatch[1],
+          refresh_token: refreshTokenMatch[1]
+        };
       }
-    }
+      
+      return null;
+    };
     
-    // Fallback to check query parameters (for local development)
-    const urlParams = new URLSearchParams(window.location.search);
-    const access_token = urlParams.get('access_token');
-    const refresh_token = urlParams.get('refresh_token');
+    const tokens = extractTokens();
     
-    if (access_token && refresh_token) {
-      setAccessToken(access_token);
-      setRefreshToken(refresh_token);
+    if (tokens) {
+      console.log('Setting tokens and logging in');
+      setAccessToken(tokens.access_token);
+      setRefreshToken(tokens.refresh_token);
       setIsLoggedIn(true);
-      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Clean the URL regardless of where tokens were found
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      return;
     }
+    
+    console.log('No tokens found in URL');
   }, []);
 
   // Fetch current playback data
