@@ -37,12 +37,12 @@ app.use((req, res, next) => {
 // Spotify API credentials
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-// Match the redirect URI with what's coming from the request to be flexible
+// Match the exact redirect URI registered in the Spotify Developer Dashboard
 let REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
 // Hardcode frontend URI for testing
 const FRONTEND_URI = process.env.FRONTEND_URI || 'https://ayon1xw.me/Better-spotify';
-// Create a separate callback URL for GitHub Pages
-const GITHUB_CALLBACK_URL = 'https://ayon1xw.me/Better-spotify/callback.html';
+// Use the exact frontend callback URL registered in the Spotify Developer Dashboard
+const GITHUB_CALLBACK_URL = 'https://ayon1xw.me/Better-spotify/callback';
 
 // Determine if we're in production
 const isProd = process.env.NODE_ENV === 'production';
@@ -187,9 +187,9 @@ app.get('/callback', async (req, res) => {
     console.log('Refresh token (first few chars):', refresh_token.substring(0, 5) + '...');
     console.log('FRONTEND_URI value:', FRONTEND_URI);
     
-    // Redirect to the dedicated callback.html page with tokens as query parameters
+    // Redirect to the dedicated GitHub callback page (matching exactly what's registered in Spotify)
     // This approach works well with GitHub Pages by using a static HTML file
-    const callbackUrl = `${FRONTEND_URI}/callback.html?token=${encodeURIComponent(access_token)}&refresh=${encodeURIComponent(refresh_token)}`;
+    const callbackUrl = `${GITHUB_CALLBACK_URL}?token=${encodeURIComponent(access_token)}&refresh=${encodeURIComponent(refresh_token)}`;
     console.log('Redirecting to callback page:', callbackUrl.replace(access_token, 'TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_HIDDEN'));
     
     res.redirect(callbackUrl);
