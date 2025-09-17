@@ -14,64 +14,32 @@ const App = () => {
   const [lyrics, setLyrics] = useState(null);
   const [showLyrics, setShowLyrics] = useState(false);
 
-  // Check for tokens in URL or localStorage on component mount
+  // Check for tokens in localStorage on component mount
   useEffect(() => {
     console.log('Checking for auth tokens...');
     
-    // Debug info - remove in production
+    // Debug info
     console.log('Current URL:', window.location.href);
     
-    // First check localStorage for tokens
+    // Simple approach: Only check localStorage
+    // The callback.html page handles storing tokens there
     const storedAccessToken = localStorage.getItem('spotify_access_token');
     const storedRefreshToken = localStorage.getItem('spotify_refresh_token');
     
+    console.log('Tokens in localStorage:', {
+      accessToken: storedAccessToken ? 'Present' : 'Not found',
+      refreshToken: storedRefreshToken ? 'Present' : 'Not found'
+    });
+    
     if (storedAccessToken && storedRefreshToken) {
-      console.log('Found tokens in localStorage');
+      console.log('Found tokens in localStorage, logging in');
       setAccessToken(storedAccessToken);
       setRefreshToken(storedRefreshToken);
       setIsLoggedIn(true);
-      return;
+    } else {
+      console.log('No tokens found, user needs to log in');
+      setIsLoggedIn(false);
     }
-    
-    // If not in localStorage, try to extract from URL
-    // Function to extract token from any location in the URL
-    const extractTokens = () => {
-      // First, check the full URL for token patterns
-      const fullUrl = window.location.href;
-      const accessTokenMatch = fullUrl.match(/access_token=([^&]*)/);
-      const refreshTokenMatch = fullUrl.match(/refresh_token=([^&]*)/);
-      
-      if (accessTokenMatch && refreshTokenMatch) {
-        console.log('Found tokens in URL pattern');
-        
-        // Also store in localStorage for persistence
-        localStorage.setItem('spotify_access_token', accessTokenMatch[1]);
-        localStorage.setItem('spotify_refresh_token', refreshTokenMatch[1]);
-        
-        return {
-          access_token: accessTokenMatch[1],
-          refresh_token: refreshTokenMatch[1]
-        };
-      }
-      
-      return null;
-    };
-    
-    const tokens = extractTokens();
-    
-    if (tokens) {
-      console.log('Setting tokens from URL and logging in');
-      setAccessToken(tokens.access_token);
-      setRefreshToken(tokens.refresh_token);
-      setIsLoggedIn(true);
-      
-      // Clean the URL regardless of where tokens were found
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-      return;
-    }
-    
-    console.log('No tokens found in localStorage or URL');
   }, []);
 
   // Fetch current playback data
@@ -198,34 +166,31 @@ const App = () => {
 
   // Handle login
   const handleLogin = () => {
-    // Use environment variable or fallback to direct URL
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 
-      (window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000' 
-        : 'https://better-spotify-4y6p.onrender.com');
+    // Hard-code the backend URL to avoid any environment variable issues
+    const backendUrl = 'https://better-spotify-4y6p.onrender.com';
     
     console.log('Login button clicked');
     console.log('Redirecting to backend URL:', backendUrl + '/login');
     
     // For debugging, show a message on screen
-    if (typeof document !== 'undefined') {
-      const debugMsg = document.createElement('div');
-      debugMsg.style.position = 'fixed';
-      debugMsg.style.top = '10px';
-      debugMsg.style.right = '10px';
-      debugMsg.style.background = 'rgba(0,0,0,0.8)';
-      debugMsg.style.color = 'white';
-      debugMsg.style.padding = '10px';
-      debugMsg.style.borderRadius = '5px';
-      debugMsg.style.zIndex = '9999';
-      debugMsg.innerHTML = `Redirecting to: ${backendUrl}/login`;
-      document.body.appendChild(debugMsg);
-    }
+    const debugMsg = document.createElement('div');
+    debugMsg.style.position = 'fixed';
+    debugMsg.style.top = '10px';
+    debugMsg.style.right = '10px';
+    debugMsg.style.background = 'rgba(0,0,0,0.8)';
+    debugMsg.style.color = 'white';
+    debugMsg.style.padding = '10px';
+    debugMsg.style.borderRadius = '5px';
+    debugMsg.style.zIndex = '9999';
+    debugMsg.innerHTML = `Redirecting to: ${backendUrl}/login`;
+    document.body.appendChild(debugMsg);
     
-    // Add a small delay for debug message to be visible
-    setTimeout(() => {
-      window.location.href = `${backendUrl}/login`;
-    }, 500);
+    // Store the exact return URL to help with debugging
+    localStorage.setItem('login_timestamp', new Date().toISOString());
+    localStorage.setItem('login_origin_url', window.location.href);
+    
+    // Direct redirect to login endpoint
+    window.location.href = `${backendUrl}/login`;
   };
 
   // Format time (ms to mm:ss)

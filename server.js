@@ -179,29 +179,22 @@ app.get('/callback', async (req, res) => {
     console.log('Refresh token (first few chars):', refresh_token.substring(0, 5) + '...');
     console.log('FRONTEND_URI value:', FRONTEND_URI);
     
-    // Try a simpler approach - just send HTML with JavaScript that will store tokens and redirect
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Authenticating...</title>
-        <script>
-          // Store tokens in localStorage for persistence
-          localStorage.setItem('spotify_access_token', '${access_token}');
-          localStorage.setItem('spotify_refresh_token', '${refresh_token}');
-          
-          // Log for debugging
-          console.log('Tokens stored in localStorage');
-          
-          // Redirect to frontend
-          window.location.href = '${FRONTEND_URI}';
-        </script>
-      </head>
-      <body>
-        <h2>Authentication successful! Redirecting...</h2>
-      </body>
-      </html>
-    `);
+    // Redirect to the dedicated callback.html page with tokens as query parameters
+    // This approach works well with GitHub Pages by using a static HTML file
+    const callbackUrl = `${FRONTEND_URI}/callback.html?token=${encodeURIComponent(access_token)}&refresh=${encodeURIComponent(refresh_token)}`;
+    console.log('Redirecting to callback page:', callbackUrl.replace(access_token, 'TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_HIDDEN'));
+    
+    res.redirect(callbackUrl);
+    
+    // ULTRA-SIMPLE approach: Redirect directly to the frontend with tokens in query string
+    // We'll use this format: https://ayon1xw.me/Better-spotify/?token=xyz&refresh=abc
+    // This avoids any complex hash-based routing issues
+    
+    console.log('Using ultra-simple redirect approach');
+    const simpleRedirectUrl = `${FRONTEND_URI}/?token=${encodeURIComponent(access_token)}&refresh=${encodeURIComponent(refresh_token)}`;
+    console.log('Redirecting to:', simpleRedirectUrl.replace(access_token, 'ACCESS_TOKEN_HIDDEN').replace(refresh_token, 'REFRESH_TOKEN_HIDDEN'));
+    
+    res.redirect(simpleRedirectUrl);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
     // Log detailed error information
