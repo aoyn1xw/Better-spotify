@@ -447,8 +447,24 @@ app.get('/', (req, res) => {
           <p><span class="method">GET</span> /currently-playing</p>
           <p>Gets the currently playing track (requires authentication)</p>
         </div>
+        
+        <div class="endpoint">
+          <p><span class="method">GET</span> /test-auth</p>
+          <p>A test page for Spotify authentication flow</p>
+        </div>
+        
+        <div class="endpoint">
+          <p><span class="method">GET</span> /debug</p>
+          <p>Shows current server configuration and state</p>
+        </div>
 
         <p>For more information, visit the <a href="${FRONTEND_URI}">frontend application</a>.</p>
+        <p>Registered redirect URIs: 
+          <ul>
+            <li>${REDIRECT_URI}</li>
+            <li>${GITHUB_CALLBACK_URL}</li>
+          </ul>
+        </p>
       </body>
     </html>
   `);
