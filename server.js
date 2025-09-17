@@ -82,6 +82,10 @@ app.get('/login', (req, res) => {
   const state = generateRandomString(16);
   const scope = 'user-read-private user-read-email user-read-playback-state user-read-currently-playing';
   
+  // Log the redirect URI being used
+  console.log('Using redirect URI in authorization request:', REDIRECT_URI);
+  console.log('CLIENT_ID:', CLIENT_ID);
+  
   res.redirect(
     'https://accounts.spotify.com/authorize?' +
     querystring.stringify({
@@ -106,6 +110,10 @@ app.get('/callback', async (req, res) => {
   
   try {
     const authString = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+    
+    // Log the redirect URI being used
+    console.log('Using redirect URI in token request:', REDIRECT_URI);
+    console.log('Using code:', code ? 'Code exists' : 'No code');
     
     const response = await axios.post(
       'https://accounts.spotify.com/api/token',
@@ -137,6 +145,10 @@ app.get('/callback', async (req, res) => {
     res.redirect(`${FRONTEND_URI}?access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
+    // Log detailed error information
+    if (error.response?.data) {
+      console.error('Detailed error:', JSON.stringify(error.response.data));
+    }
     res.redirect(`/?${querystring.stringify({ error: 'invalid_token' })}`);
   }
 });
@@ -192,6 +204,18 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Add diagnostic endpoint (REMOVE IN PRODUCTION)
+app.get('/debug', (req, res) => {
+  res.json({
+    redirect_uri: REDIRECT_URI,
+    frontend_uri: FRONTEND_URI,
+    client_id_first_chars: CLIENT_ID ? CLIENT_ID.substring(0, 4) + '...' : 'not set',
+    client_secret_set: !!CLIENT_SECRET
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+  console.log(`Using REDIRECT_URI: ${REDIRECT_URI}`);
+  console.log(`Using FRONTEND_URI: ${FRONTEND_URI}`);
 });
