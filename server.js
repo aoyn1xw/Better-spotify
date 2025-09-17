@@ -32,7 +32,8 @@ const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
 // For local development, uncomment the line below instead
 // const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/callback';
-const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:3000';
+// Hardcode frontend URI for testing
+const FRONTEND_URI = process.env.FRONTEND_URI || 'https://ayon1xw.me/Better-spotify';
 
 // Determine if we're in production
 const isProd = process.env.NODE_ENV === 'production';
@@ -85,20 +86,28 @@ app.get('/login', (req, res) => {
   const state = generateRandomString(16);
   const scope = 'user-read-private user-read-email user-read-playback-state user-read-currently-playing';
   
-  // Log the redirect URI being used
-  console.log('Using redirect URI in authorization request:', REDIRECT_URI);
+  // Super verbose logging
+  console.log('=========== LOGIN ROUTE ===========');
   console.log('CLIENT_ID:', CLIENT_ID);
+  console.log('CLIENT_SECRET is set:', !!CLIENT_SECRET);
+  console.log('REDIRECT_URI:', REDIRECT_URI);
+  console.log('Request origin:', req.headers.origin || 'No origin');
+  console.log('Request referer:', req.headers.referer || 'No referer');
+  console.log('==================================');
   
-  res.redirect(
-    'https://accounts.spotify.com/authorize?' +
+  // Build auth URL with querystring
+  const authUrl = 'https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
       client_id: CLIENT_ID,
       scope: scope,
       redirect_uri: REDIRECT_URI,
       state: state
-    })
-  );
+    });
+  
+  console.log('Full auth URL:', authUrl);
+  
+  res.redirect(authUrl);
 });
 
 // Callback route - handles Spotify's response
@@ -106,7 +115,18 @@ app.get('/callback', async (req, res) => {
   const code = req.query.code || null;
   const state = req.query.state || null;
   
+  // Super verbose logging
+  console.log('=========== CALLBACK ROUTE ===========');
+  console.log('Code exists:', !!code);
+  console.log('State exists:', !!state);
+  console.log('CLIENT_ID:', CLIENT_ID);
+  console.log('CLIENT_SECRET is set:', !!CLIENT_SECRET);
+  console.log('REDIRECT_URI:', REDIRECT_URI);
+  console.log('Query params:', req.query);
+  console.log('======================================');
+  
   if (state === null) {
+    console.log('Error: state_mismatch - redirecting to error page');
     res.redirect(`/?${querystring.stringify({ error: 'state_mismatch' })}`);
     return;
   }
@@ -114,9 +134,10 @@ app.get('/callback', async (req, res) => {
   try {
     const authString = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
     
-    // Log the redirect URI being used
-    console.log('Using redirect URI in token request:', REDIRECT_URI);
-    console.log('Using code:', code ? 'Code exists' : 'No code');
+    console.log('Making token request with:');
+    console.log('- Code:', code ? code.substring(0, 4) + '...' : 'No code');
+    console.log('- Redirect URI:', REDIRECT_URI);
+    console.log('- Auth header present:', !!authString);
     
     const response = await axios.post(
       'https://accounts.spotify.com/api/token',
@@ -144,14 +165,29 @@ app.get('/callback', async (req, res) => {
       timestamp: Date.now()
     };
     
-    // Redirect to frontend with token
-    res.redirect(`${FRONTEND_URI}?access_token=${access_token}&refresh_token=${refresh_token}`);
+    console.log('Successfully obtained tokens');
+    console.log('Redirecting to frontend:', FRONTEND_URI);
+    
+    // For GitHub Pages, we need to handle the redirect properly
+    // GitHub Pages URLs need to correctly handle hash routing
+    // Use hash fragment for parameters since GitHub Pages doesn't support server-side routing
+    res.redirect(`${FRONTEND_URI}#access_token=${access_token}&refresh_token=${refresh_token}`);
   } catch (error) {
     console.error('Error getting tokens:', error.response?.data || error.message);
     // Log detailed error information
+    console.error('=========== ERROR DETAILS ===========');
     if (error.response?.data) {
-      console.error('Detailed error:', JSON.stringify(error.response.data));
+      console.error('Error response data:', JSON.stringify(error.response.data));
     }
+    if (error.response?.status) {
+      console.error('Error status code:', error.response.status);
+    }
+    if (error.response?.headers) {
+      console.error('Error response headers:', JSON.stringify(error.response.headers));
+    }
+    console.error('Error stack:', error.stack);
+    console.error('====================================');
+    
     res.redirect(`/?${querystring.stringify({ error: 'invalid_token' })}`);
   }
 });
@@ -210,10 +246,26 @@ if (process.env.NODE_ENV === 'production') {
 // Add diagnostic endpoint (REMOVE IN PRODUCTION)
 app.get('/debug', (req, res) => {
   res.json({
-    redirect_uri: REDIRECT_URI,
-    frontend_uri: FRONTEND_URI,
-    client_id_first_chars: CLIENT_ID ? CLIENT_ID.substring(0, 4) + '...' : 'not set',
-    client_secret_set: !!CLIENT_SECRET
+    environment: {
+      node_env: process.env.NODE_ENV || 'not set',
+      port: process.env.PORT || '5000 (default)',
+      is_production: isProd
+    },
+    spotify_config: {
+      redirect_uri: REDIRECT_URI,
+      frontend_uri: FRONTEND_URI,
+      client_id_first_chars: CLIENT_ID ? CLIENT_ID.substring(0, 4) + '...' : 'not set',
+      client_secret_set: !!CLIENT_SECRET
+    },
+    server_info: {
+      uptime_seconds: Math.floor(process.uptime()),
+      memory_usage_mb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+      hostname: require('os').hostname()
+    },
+    cors_config: {
+      allowed_origins: corsOptions.origin,
+      credentials_allowed: corsOptions.credentials
+    }
   });
 });
 
