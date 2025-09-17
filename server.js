@@ -28,7 +28,10 @@ app.use(express.json());
 // Spotify API credentials
 const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/callback';
+// Try hardcoded redirect URI to troubleshoot INVALID_CLIENT error
+const REDIRECT_URI = 'https://better-spotify-4y6p.onrender.com/callback';
+// For local development, uncomment the line below instead
+// const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:5000/callback';
 const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:3000';
 
 // Determine if we're in production
